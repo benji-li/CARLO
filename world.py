@@ -1,15 +1,26 @@
 from agents import Car, Pedestrian, RectangleBuilding
 from entities import Entity
 from typing import Union
-from visualizer import Visualizer
+#from visualizer import Visualizer
+#from video_visualizer import VideoVisualizer
 
 class World:
-    def __init__(self, dt: float, width: float, height: float, ppm: float = 8):
+    def __init__(self, dt: float, width: float, height: float, ppm: float = 8, headless: bool = False):
         self.dynamic_agents = []
         self.static_agents = []
         self.t = 0 # simulation time
         self.dt = dt # simulation time step
-        self.visualizer = Visualizer(width, height, ppm=ppm)
+        self.headless = headless
+        self.width = width
+        self.height = height
+        self.ppm = ppm
+
+        if headless:
+            from video_visualizer import VideoVisualizer
+            self.visualizer = VideoVisualizer(width, height, ppm=ppm)
+        else:
+            from visualizer import Visualizer
+            self.visualizer = Visualizer(width, height, ppm=ppm)
         
     def add(self, entity: Entity):
         if entity.movable:
@@ -25,7 +36,13 @@ class World:
     def render(self):
         self.visualizer.create_window(bg_color = 'gray')
         self.visualizer.update_agents(self.agents)
-        
+
+    def save_video(self, filename: str, fps: int = 24):
+        if self.headless:
+            self.visualizer.save_video(filename, fps=fps)
+        else:
+            print("World is not in video visualizer mode. Cannot save video.")
+
     @property
     def agents(self):
         return self.static_agents + self.dynamic_agents
